@@ -343,21 +343,29 @@
         half3 mainLightDiffuse = 0;
         half3 mainLightSpecular = 0;
 
-        mainLightDiffuse = Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
-
-        #if defined(SHADING_MODE_CLOTH)
+        #if defined(_INTEGRATE_CUSTOM_MAIN_LIGHT_DIFFUSE)
         {
-            if (_ClothHasSubsurface)
-            {
-                mainLightDiffuse *= Fd_Wrap(dot(o.Normal, lightDir), 0.5);
-                mainLightDiffuse *= saturate(_ClothSubsurfaceColor.rgb + lightNoL);
-            } else {
-                mainLightDiffuse *= lightNoL;
-            }
-            mainLightDiffuse *= lightColor;
+            %CustomMainLightDiffuseFunctions
         }
         #else
-        mainLightDiffuse *= lightColor * lightNoL;
+        {
+            mainLightDiffuse = Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+
+            #if defined(SHADING_MODE_CLOTH)
+            {
+                if (_ClothHasSubsurface)
+                {
+                    mainLightDiffuse *= Fd_Wrap(dot(o.Normal, lightDir), 0.5);
+                    mainLightDiffuse *= saturate(_ClothSubsurfaceColor.rgb + lightNoL);
+                } else {
+                    mainLightDiffuse *= lightNoL;
+                }
+                mainLightDiffuse *= lightColor;
+            }
+            #else
+            mainLightDiffuse *= lightColor * lightNoL;
+            #endif
+        }
         #endif
 
 
